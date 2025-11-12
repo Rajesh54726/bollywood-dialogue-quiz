@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bollywood Dialogue Quiz</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Custom Styling for the "Light Mode" Theme */
+        body {
+            font-family: 'Merriweather', serif; 
+            /* Light, subtle gradient background */
+            background: ; 
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            color: #1f2937; /* Default dark text */
+        }
+        .quiz-container {
+            max-width: 500px;
+            width: 100%;
+            background-color: #ffffff; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); 
+            border: 1px solid #d1d5db; /* Light gray border */
+            border-radius: 0.75rem; /* 12px */
+        }
+        .filmy-title {
+            font-family: 'Anton', sans-serif;
+            letter-spacing: 0.05em;
+        }
+        .dialogue-box {
+            background-color: #f3f4f6; /* Light gray background for dialogue */
+            border: 1px solid #e5e7eb;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); /* Inset shadow */
+        }
+        .dialogue-text {
+            font-family: 'Anton', sans-serif; 
+            color: #1e3a8a; /* Deep blue color */
+            line-height: 1.3;
+        }
+        .option-button {
+            transition: all 0.2s ease-in-out;
+            font-family: 'Merriweather', serif;
+            background-color: #ffffff;
+            border: 2px solid #9ca3af; /* Gray border */
+            color: #374151; /* Dark gray text */
+        }
+        .option-button:hover {
+            background-color: #3b82f6; /* Blue on hover */
+            color: #ffffff;
+            border-color: #3b82f6;
+            transform: translateY(-2px) scale(1.02); 
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+        }
+        .correct {
+            background-color: #22c55e !important; /* Green */
+            border-color: #22c55e !important;
+            color: white !important;
+        }
+        .incorrect {
+            background-color: #ef4444 !important; /* Red */
+            border-color: #ef4444 !important;
+            color: white !important;
+        }
+        .disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="quiz-container" class="quiz-container p-6 md:p-8 space-y-6">
+        <!-- UPDATED TITLE WITH COLORFUL SPANS -->
+        <h1 class="text-3xl md:text-4xl font-extrabold text-center uppercase border-b-2 border-gray-300 pb-3 filmy-title">
+            <span class="text-purple-600">🎉</span> 
+            <span class="text-red-600">UGCTE</span> 
+            <span class="text-green-600">Fun</span> 
+            <span class="text-blue-600">event</span>
+            <span class="text-purple-600">🎉</span>
+        </h1>
+
+        <!-- Quiz Area -->
+        <div id="quiz-area">
+            <p id="question-count" class="text-xs text-gray-500 text-center mb-4 uppercase tracking-wider"></p>
+            
+            <!-- Dialogue Box -->
+            <div class="dialogue-box p-4 rounded-lg">
+                <p id="dialogue" class="text-3xl md:text-4xl text-center font-bold dialogue-text">
+                    Loading dialogue...
+                </p>
+            </div>
+
+            <div id="options-container" class="mt-6 space-y-3">
+                <!-- Options will be injected here -->
+            </div>
+
+            <p id="feedback" class="text-center text-lg mt-4 font-semibold min-h-[1.5rem]"></p>
+            
+            <!-- Next Button -->
+            <button id="next-button" class="option-button w-full bg-blue-600 text-white font-bold py-3 mt-4 rounded-lg shadow-lg hover:bg-blue-700 disabled:opacity-50 filmy-title tracking-wider text-lg border-transparent hover:border-transparent" disabled>
+                Next Dialogue
+            </button>
+        </div>
+
+        <!-- Result Screen (Hidden initially) -->
+        <div id="result-screen" class="text-center hidden">
+            <h2 class="text-4xl font-extrabold text-blue-800 mb-4 filmy-title">The End! Taaliyan!</h2>
+            <p id="final-score" class="text-2xl text-gray-800 mb-2">Your Score: 0/10</p>
+            <p id="high-score" class="text-xl text-blue-600 mb-6">High Score: 0/10</p>
+            <p class="text-gray-600 mb-6">Thank you for accepting the challenge. You are a true cinephile!</p>
+            <button id="restart-button" class="option-button w-full bg-blue-600 text-white font-bold py-3 rounded-lg shadow-lg hover:bg-blue-700 filmy-title tracking-wider text-lg border-transparent hover:border-transparent">
+                Play Again (Restart)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- MASTER QUESTION BANK (101 Questions) ---
+        const masterQuizData = [
+            // Amitabh Bachchan
+            { dialogue: "Mere paas Maa hai.", type: "Movie", correctAnswer: "Deewaar", options: ["Deewaar", "Shakti", "Trishul", "Kala Patthar"], correctIndex: 0 },
+            { dialogue: "Rishte mein toh hum tumhare baap lagte hain, naam hai Shahenshah.", type: "Actor", correctAnswer: "Amitabh Bachchan", options: ["Dharmendra", "Amitabh Bachchan", "Shatrughan Sinha", "Vinod Khanna"], correctIndex: 1 },
+            { dialogue: "Don ko pakadna mushkil hi nahi, namumkin hai.", type: "Movie", correctAnswer: "Don (1978)", options: ["Don (1978)", "Deewaar", "Shahenshah", "Agneepath"], correctIndex: 0 },
+            { dialogue: "Hum jahan khade ho jaate hain, line wahin se shuru hoti hai.", type: "Movie", correctAnswer: "Kaalia", options: ["Shahenshah", "Kaalia", "Agneepath", "Sholay"], correctIndex: 1 },
+            { dialogue: "Parampara, Pratishtha, Anushasan.", type: "Movie", correctAnswer: "Mohabbatein", options: ["Kabhi Khushi Kabhie Gham", "Baghban", "Mohabbatein", "Silsila"], correctIndex: 2 },
+            { dialogue: "I can talk English, I can walk English, I can laugh English...", type: "Movie", correctAnswer: "Namak Halaal", options: ["Sharaabi", "Satte Pe Satta", "Namak Halaal", "Kaalia"], correctIndex: 2 },
+            { dialogue: "Vijay Dinanath Chauhan, poora naam.", type: "Movie", correctAnswer: "Agneepath (1990)", options: ["Agneepath (1990)", "Hum", "Shahenshah", "Deewaar"], correctIndex: 0 },
+            { dialogue: "Pura naam, Vijay Dinanath Chauhan...", type: "Actor", correctAnswer: "Amitabh Bachchan", options: ["Mithun Chakraborty", "Al Pacino", "Amitabh Bachchan", "Sanjay Dutt"], correctIndex: 2 },
+            { dialogue: "Keh diya na... bas, keh diya!", type: "Movie", correctAnswer: "Kabhi Khushi Kabhie Gham", options: ["Mohabbatein", "Baghban", "Kabhi Khushi Kabhie Gham", "Veer-Zaara"], correctIndex: 2 },
+            { dialogue: "Aapka naam kya hai, Basanti?", type: "Movie", correctAnswer: "Sholay", options: ["Sholay", "Zanjeer", "Seeta aur Geeta", "Deewaar"], correctIndex: 0 },
+
+            // Shah Rukh Khan
+            { dialogue: "Bade bade deshon mein aisi choti choti baatein hoti rehti hai, Senorita.", type: "Actor", correctAnswer: "Shah Rukh Khan", options: ["Aamir Khan", "Shah Rukh Khan", "Salman Khan", "Saif Ali Khan"], correctIndex: 1 },
+            { dialogue: "Picture abhi baaki hai mere dost.", type: "Movie", correctAnswer: "Om Shanti Om", options: ["Dilwale Dulhania Le Jayenge", "Om Shanti Om", "Chennai Express", "Kal Ho Naa Ho"], correctIndex: 1 },
+            { dialogue: "Rahul, naam toh suna hoga?", type: "Movie", correctAnswer: "Dil To Pagal Hai", options: ["Kuch Kuch Hota Hai", "Dilwale Dulhania Le Jayenge", "Dil To Pagal Hai", "Yes Boss"], correctIndex: 2 },
+            { dialogue: "Kaun kambakht bardaasht karne ko peeta hai...", type: "Movie", correctAnswer: "Devdas (2002)", options: ["Devdas (1955)", "Om Shanti Om", "Devdas (2002)", "My Name is Khan"], correctIndex: 2 },
+            { dialogue: "My name is Khan, and I am not a terrorist.", type: "Movie", correctAnswer: "My Name Is Khan", options: ["Chak De! India", "My Name Is Khan", "Kal Ho Naa Ho", "Swades"], correctIndex: 1 },
+            { dialogue: "Sattar minute, sattar minute hai tumhare paas.", type: "Movie", correctAnswer: "Chak De! India", options: ["Chak De! India", "Swades", "Veer-Zaara", "Don 2"], correctIndex: 0 },
+            { dialogue: "Hum ek baar jeete hain, ek baar marte hain...", type: "Movie", correctAnswer: "Kuch Kuch Hota Hai", options: ["Dilwale Dulhania Le Jayenge", "Kuch Kuch Hota Hai", "Kal Ho Naa Ho", "Veer-Zaara"], correctIndex: 1 },
+            { dialogue: "Don't underestimate the power of a common man.", type: "Movie", correctAnswer: "Chennai Express", options: ["Ra.One", "Happy New Year", "Chennai Express", "Dilwale"], correctIndex: 2 },
+            { dialogue: "Haar kar jeetne wale ko hi baazigar kehte hain.", type: "Movie", correctAnswer: "Baazigar", options: ["Darr", "Baazigar", "Anjaam", "Don 2"], correctIndex: 1 },
+            { dialogue: "K.. k.. k.. Kiran.", type: "Actor", correctAnswer: "Shah Rukh Khan", options: ["Sunny Deol", "Aamir Khan", "Shah Rukh Khan", "Salman Khan"], correctIndex: 2 },
+
+            // Salman Khan
+            { dialogue: "Ek baar jo maine commitment kar di, uske baad toh main khud ki bhi nahi sunta.", type: "Actor", correctAnswer: "Salman Khan", options: ["Shah Rukh Khan", "Aamir Khan", "Ajay Devgn", "Salman Khan"], correctIndex: 3 },
+            { dialogue: "Thappad se darr nahi lagta saab, pyaar se lagta hai.", type: "Movie", correctAnswer: "Dabangg", options: ["Wanted", "Dabangg", "Bodyguard", "Sultan"], correctIndex: 1 },
+            { dialogue: "Dosti ka ek usool hai, madam: no sorry, no thank you.", type: "Movie", correctAnswer: "Maine Pyar Kiya", options: ["Maine Pyar Kiya", "Hum Aapke Hain Koun..!", "Saajan", "Partner"], correctIndex: 0 },
+            { dialogue: "Hum tum mein itne ched karenge...", type: "Movie", correctAnswer: "Dabangg", options: ["Wanted", "Dabangg", "Sultan", "Ready"], correctIndex: 1 },
+            { dialogue: "Mujh par ek ehsaan karna, ki mujh par koi ehsaan na karna.", type: "Movie", correctAnswer: "Bodyguard", options: ["Wanted", "Ready", "Bodyguard", "Kick"], correctIndex: 2 },
+            { dialogue: "Mere baare mein itna mat sochna, dil mein aata hoon, samajh mein nahi.", type: "Movie", correctAnswer: "Kick", options: ["Kick", "Jai Ho", "Race 3", "Dabangg 2"], correctIndex: 0 },
+            { dialogue: "Swagat nahi karoge hamara?", type: "Movie", correctAnswer: "Dabangg 2", options: ["Dabangg", "Dabangg 2", "Jai Ho", "Ek Tha Tiger"], correctIndex: 1 },
+            { dialogue: "Zindagi mein teen cheezein kabhi underestimate nahi karna - I, Me and Myself.", type: "Movie", correctAnswer: "Ready", options: ["Bodyguard", "Wanted", "Ready", "Partner"], correctIndex: 2 },
+            { dialogue: "Aam aadmi sota hua sher hai. Ungli mat kar.", type: "Movie", correctAnswer: "Jai Ho", options: ["Jai Ho", "Sultan", "Bajrangi Bhaijaan", "Tiger Zinda Hai"], correctIndex: 0 },
+            { dialogue: "Hum Bajrang Bali ke bhakt hain. Jhooth nahi bolenge.", type: "Actor", correctAnswer: "Salman Khan", options: ["Hrithik Roshan", "Salman Khan", "Akshay Kumar", "Aamir Khan"], correctIndex: 1 },
+
+            // Aamir Khan
+            { dialogue: "All izz well.", type: "Movie", correctAnswer: "3 Idiots", options: ["3 Idiots", "Taare Zameen Par", "Lagaan", "Rang De Basanti"], correctIndex: 0 },
+            { dialogue: "Tumse na ho payega.", type: "Movie", correctAnswer: "Gangs of Wasseypur", options: ["Gangs of Wasseypur", "Omkara", "Satya", "3 Idiots"], correctIndex: 0 }, // Trick question
+            { dialogue: "Aal izz well", type: "Actor", correctAnswer: "Aamir Khan", options: ["R. Madhavan", "Sharman Joshi", "Aamir Khan", "Boman Irani"], correctIndex: 2 },
+            { dialogue: "Dangal dangal.", type: "Movie", correctAnswer: "Dangal", options: ["Sultan", "Dangal", "Lagaan", "PK"], correctIndex: 1 },
+            { dialogue: "Maari chhoriyaan chhoro se kam hain ke?", type: "Movie", correctAnswer: "Dangal", options: ["Sultan", "Dangal", "Chak De! India", "Mary Kom"], correctIndex: 1 },
+            { dialogue: "E sala humra gola pe... kauno jhooth nahi bolta.", type: "Movie", correctAnswer: "PK", options: ["3 Idiots", "Lagaan", "PK", "Dangal"], correctIndex: 2 },
+            { dialogue: "Crime Master Gogo naam hai mera. Aankhen nikaal kar gotiyan khelta hoon.", type: "Movie", correctAnswer: "Andaz Apna Apna", options: ["Raja Hindustani", "Andaz Apna Apna", "Ishq", "Ghulam"], correctIndex: 1 },
+            { dialogue: "Main apni favourite hoon.", type: "Movie", correctAnswer: "Jab We Met", options: ["Kabhi Khushi Kabhie Gham", "Jab We Met", "Om Shanti Om", "Kal Ho Naa Ho"], correctIndex: 1 }, // Trick
+            { dialogue: "Jo darr gaya, samjho marr gaya.", type: "Movie", correctAnswer: "Sholay", options: ["Sholay", "Deewaar", "Don", "Lagaan"], correctIndex: 0 }, // Trick
+            { dialogue: "Tension lene ka nahin, sirf dene ka.", type: "Actor", correctAnswer: "Sanjay Dutt", options: ["Amitabh Bachchan", "Shah Rukh Khan", "Sanjay Dutt", "Aamir Khan"], correctIndex: 2 }, // Trick
+
+            // Villains
+            { dialogue: "Mogambo khush hua.", type: "Movie", correctAnswer: "Mr. India", options: ["Lagaan", "Shaan", "Mr. India", "Don"], correctIndex: 2 },
+            { dialogue: "Kitne aadmi the?", type: "Movie", correctAnswer: "Sholay", options: ["Sholay", "Gadar", "Dabangg", "Singham"], correctIndex: 0 },
+            { dialogue: "Sara sheher mujhe Loin ke naam se jaanta hai.", type: "Movie", correctAnswer: "Kalicharan", options: ["Yaadon Ki Baaraat", "Kalicharan", "Shaan", "Karz"], correctIndex: 1 },
+            { dialogue: "Prem naam hai mera, Prem Chopra.", type: "Actor", correctAnswer: "Prem Chopra", options: ["Prem Chopra", "Ranjeet", "Shakti Kapoor", "Kader Khan"], correctIndex: 0 },
+            { dialogue: "Bad Man!", type: "Actor", correctAnswer: "Gulshan Grover", options: ["Amrish Puri", "Gulshan Grover", "Shakti Kapoor", "Paresh Rawal"], correctIndex: 1 },
+            { dialogue: "Gabbar, kitne aadmi they?", type: "Actor", correctAnswer: "Amjad Khan", options: ["Amjad Khan", "Amrish Puri", "Sanjeev Kumar", "Dharmendra"], correctIndex: 0 },
+            { dialogue: "Mogambo khush hua", type: "Actor", correctAnswer: "Amrish Puri", options: ["Anupam Kher", "Paresh Rawal", "Amrish Puri", "Kulbhushan Kharbanda"], correctIndex: 2 },
+            { dialogue: "Aao kabhi haveli pe.", type: "Actor", correctAnswer: "Amrish Puri", options: ["Shakti Kapoor", "Kader Khan", "Amrish Puri", "Paresh Rawal"], correctIndex: 2 },
+            { dialogue: "Nanga nahayega kya aur nichodega kya.", type: "Actor", correctAnswer: "Kader Khan", options: ["Johnny Lever", "Paresh Rawal", "Kader Khan", "Govinda"], correctIndex: 2 },
+            { dialogue: "Aisa-waisa, chhota-mota... badshah.", type: "Actor", correctAnswer: "Shakti Kapoor", options: ["Shakti Kapoor", "Gulshan Grover", "Ranjeet", "Kiran Kumar"], correctIndex: 0 },
+
+            // Classics (Pre-80s)
+            { dialogue: "Pushpa, I hate tears.", type: "Movie", correctAnswer: "Amar Prem", options: ["Pyaasa", "Mera Naam Joker", "Amar Prem", "Guide"], correctIndex: 2 },
+            { dialogue: "Babumoshai, zindagi badi honi chahiye, lambi nahi.", type: "Movie", correctAnswer: "Anand", options: ["Anand", "Safar", "Amar Prem", "Kati Patang"], correctIndex: 0 },
+            { dialogue: "Jinke ghar sheeshe ke ہوتے hain, woh doosron par pathar nahi phenka karte.", type: "Movie", correctAnswer: "Waqt", options: ["Pakeezah", "Mughal-e-Azam", "Waqt", "Guide"], correctIndex: 2 },
+            { dialogue: "Anarkali, Salim ki mohabbat tumhe marne nahi degi aur hum tumhe jeene nahi denge.", type: "Movie", correctAnswer: "Mughal-e-Azam", options: ["Mughal-e-Azam", "Pakeezah", "Baiju Bawra", "Taj Mahal"], correctIndex: 0 },
+            { dialogue: "Main aaj bhi phenke hue paise nahi uthata.", type: "Movie", correctAnswer: "Deewaar", options: ["Zanjeer", "Trishul", "Deewaar", "Sholay"], correctIndex: 2 },
+            { dialogue: "Yeh haath humko de de Thakur.", type: "Movie", correctAnswer: "Sholay", options: ["Sholay", "Zanjeer", "Mera Gaon Mera Desh", "Deewaar"], correctIndex: 0 },
+            { dialogue: "Zindagi aur maut uparwale ke haath hai, jahanpanah.", type: "Actor", correctAnswer: "Rajesh Khanna", options: ["Dilip Kumar", "Raj Kapoor", "Dev Anand", "Rajesh Khanna"], correctIndex: 3 },
+            { dialogue: "It's simple. S-I-M-P-L-E.", type: "Movie", correctAnswer: "Sholay", options: ["Chupke Chupke", "Sholay", "Anand", "Bawarchi"], correctIndex: 1 },
+            { dialogue: "Kaun kambakht bardaasht karne ko peeta hai?", type: "Movie", correctAnswer: "Devdas (1955)", options: ["Pyaasa", "Mughal-e-Azam", "Devdas (2002)", "Devdas (1955)"], correctIndex: 3 },
+            { dialogue: "Angrezon ke zamaane ke jailer hain!", type: "Movie", correctAnswer: "Sholay", options: ["Kaala Paani", "Do Aankhen Barah Haath", "Sholay", "Bandini"], correctIndex: 2 },
+
+            // Actresses
+            { dialogue: "Main apni favourite hoon.", type: "Actor", correctAnswer: "Kareena Kapoor", options: ["Kajol", "Preity Zinta", "Kareena Kapoor", "Rani Mukerji"], correctIndex: 2 },
+            { dialogue: "Filmein sirf teen cheezon ki wajah se chalti hain... Entertainment, Entertainment, Entertainment.", type: "Actor", correctAnswer: "Vidya Balan", options: ["Kangana Ranaut", "Vidya Balan", "Priyanka Chopra", "Rani Mukerji"], correctIndex: 1 },
+            { dialogue: "Ek chutki sindoor ki keemat tum kya jaano Ramesh babu?", type: "Actor", correctAnswer: "Deepika Padukone", options: ["Aishwarya Rai", "Kajol", "Deepika Padukone", "Priyanka Chopra"], correctIndex: 2 },
+            { dialogue: "Tussi jaa rahe ho? Tussi na jao.", type: "Movie", correctAnswer: "Kuch Kuch Hota Hai", options: ["Dilwale Dulhania Le Jayenge", "Kuch Kuch Hota Hai", "Kabhi Khushi Kabhie Gham", "My Name is Khan"], correctIndex: 1 },
+            { dialogue: "Mera toh itna life kharaab ho gaya!", type: "Movie", correctAnswer: "Queen", options: ["Queen", "Tanu Weds Manu", "Fashion", "Jab We Met"], correctIndex: 0 },
+            { dialogue: "Chal jhoothi!", type: "Movie", correctAnswer: "Yeh Jawaani Hai Deewani", options: ["Jab We Met", "Cocktail", "Band Baaja Baaraat", "Yeh Jawaani Hai Deewani"], correctIndex: 3 },
+            { dialogue: "No means no.", type: "Movie", correctAnswer: "Pink", options: ["Pink", "NH10", "Mom", "Kahaani"], correctIndex: 0 },
+            { dialogue: "Mera boyfriend Gogo Gulati hai.", type: "Movie", correctAnswer: "Pyaar Ka Punchnama 2", options: ["Sonu Ke Titu Ki Sweety", "Pyaar Ka Punchnama", "Pyaar Ka Punchnama 2", "Luv Ka The End"], correctIndex: 2 },
+            { dialogue: "Mar jaayega tu.", type: "Movie", correctAnswer: "Gully Boy", options: ["Raazi", "Gully Boy", "Highway", "Udta Punjab"], correctIndex: 1 },
+            { dialogue: "Aata majhi satakli.", type: "Movie", correctAnswer: "Singham", options: ["Singham", "Dabangg", "Simmba", "Sooryavanshi"], correctIndex: 0 }, // Trick
+
+            // Comedy
+            { dialogue: "Utha le re baba... utha le. Mere ko nahi, in dono ko.", type: "Actor", correctAnswer: "Paresh Rawal", options: ["Akshay Kumar", "Suniel Shetty", "Paresh Rawal", "Johnny Lever"], correctIndex: 2 },
+            { dialogue: "Yeh Baburao ka style hai.", type: "Movie", correctAnswer: "Hera Pheri", options: ["Hera Pheri", "Welcome", "Garam Masala", "Bhool Bhulaiyaa"], correctIndex: 0 },
+            { dialogue: "Teja main hoon, mark idher hai.", type: "Movie", correctAnswer: "Andaz Apna Apna", options: ["Hera Pheri", "Andaz Apna Apna", "Raja Hindustani", "Baazigar"], correctIndex: 1 },
+            { dialogue: "Main toh kehta hoon aap purush hi nahi hai... mahapurush hain, mahapurush!", type: "Movie", correctAnswer: "Andaz Apna Apna", options: ["Andaz Apna Apna", "Hera Pheri", "Jaane Bhi Do Yaaro", "Chupke Chupke"], correctIndex: 0 },
+            { dialogue: "Abbe, maut ko chhoo ke... tak se waapis aa sakta hoon.", type: "Actor", correctAnswer: "Nana Patekar", options: ["Anil Kapoor", "Nana Patekar", "Paresh Rawal", "Akshay Kumar"], correctIndex: 1 },
+            { dialogue: "Control Uday, control!", type: "Movie", correctAnswer: "Welcome", options: ["Hera Pheri", "Welcome", "Garam Masala", "No Entry"], correctIndex: 1 },
+            { dialogue: "Subah uthata hoon, oil nikaalta hoon, poora din tel bechta hoon...", type: "Actor", correctAnswer: "Johnny Lever", options: ["Rajpal Yadav", "Vijay Raaz", "Johnny Lever", "Sanjay Mishra"], correctIndex: 2 },
+            { dialogue: "Aapke paas... biscuit hai?", type: "Actor", correctAnswer: "Vijay Raaz", options: ["Vijay Raaz", "Deepak Dobriyal", "Nawazuddin Siddiqui", "Rajpal Yadav"], correctIndex: 0 },
+            { dialogue: "Dhoniii... Maaaar raha hai!", type: "Movie", correctAnswer: "M.S. Dhoni: The Untold Story", options: ["Lagaan", "Chak De! India", "M.S. Dhoni: The Untold Story", "Iqbal"], correctIndex: 2 },
+            { dialogue: "22 tak padhaai, 25 pe naukri, 26 pe chokri...", type: "Movie", correctAnswer: "Yeh Jawaani Hai Deewani", options: ["3 Idiots", "Wake Up Sid", "Yeh Jawaani Hai Deewani", "Tamasha"], correctIndex: 2 },
+
+            // Modern Hits & Misc
+            { dialogue: "How's the josh?", type: "Movie", correctAnswer: "Uri: The Surgical Strike", options: ["Lakshya", "Border", "Uri: The Surgical Strike", "Chak De! India"], correctIndex: 2 },
+            { dialogue: "Tareekh pe tareekh, tareekh pe tareekh...", type: "Actor", correctAnswer: "Sunny Deol", options: ["Sunny Deol", "Amrish Puri", "Anil Kapoor", "Sanjay Dutt"], correctIndex: 0 },
+            { dialogue: "Yeh dhai kilo ka haath jab kisi pe padta hai na...", type: "Movie", correctAnswer: "Damini", options: ["Ghayal", "Ghatak", "Damini", "Border"], correctIndex: 2 },
+            { dialogue: "Tumse na ho payega.", type: "Movie", correctAnswer: "Gangs of Wasseypur", options: ["Gangs of Wasseypur", "Omkara", "Satya", "Haider"], correctIndex: 0 },
+            { dialogue: "Sabka badla lega re tera Faizal.", type: "Actor", correctAnswer: "Nawazuddin Siddiqui", options: ["Manoj Bajpayee", "Pankaj Tripathi", "Nawazuddin Siddiqui", "Irrfan Khan"], correctIndex: 2 },
+            { dialogue: "Keh ke lunga.", type: "Movie", correctAnswer: "Gangs of Wasseypur", options: ["Satya", "Vaastav", "Gangs of Wasseypur", "Omkara"], correctIndex: 2 },
+            { dialogue: "Seize the day, my friend. Pehle is din ko poori tarah jiyo...", type: "Movie", correctAnswer: "Zindagi Na Milegi Dobara", options: ["Dil Chahta Hai", "Zindagi Na Milegi Dobara", "Rock On!!", "Lakshya"], correctIndex: 1 },
+            { dialogue: "Tumhara result decide nahi karta hai ki tum loser ho ki nahi...", type: "Movie", correctAnswer: "Chhichhore", options: ["3 Idiots", "Chhichhore", "Taare Zameen Par", "Dangal"], correctIndex: 1 },
+            { dialogue: "Apna time aayega.", type: "Movie", correctAnswer: "Gully Boy", options: ["8 Mile", "Gully Boy", "Rockstar", "Aashiqui 2"], correctIndex: 1 },
+            { dialogue: "Violent, violent, violent... I don't like it. I avoid. But... violence likes me.", type: "Movie", correctAnswer: "KGF: Chapter 2", options: ["Baahubali 2", "Pushpa: The Rise", "KGF: Chapter 2", "Vikram"], correctIndex: 2 },
+            { dialogue: "Mera vachan hi hai shaasan.", type: "Movie", correctAnswer: "Baahubali 2", options: ["Baahubali: The Beginning", "Baahubali 2", "RRR", "Magadheera"], correctIndex: 1 }
+        ];
+
+
+        // --- LocalStorage Key for High Score ---
+        const HIGH_SCORE_KEY = 'bollywoodQuizHighScoreLight'; // Changed key for new version
+        const QUESTIONS_PER_GAME = 10;
+
+        // --- State Variables ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isQuestionAnswered = false;
+        let activeQuizQuestions = []; // Holds the 10 random questions for this session
+
+        // --- DOM Elements ---
+        const dialogueEl = document.getElementById('dialogue');
+        const optionsContainerEl = document.getElementById('options-container');
+        const nextButtonEl = document.getElementById('next-button');
+        const feedbackEl = document.getElementById('feedback');
+        const questionCountEl = document.getElementById('question-count');
+        const quizAreaEl = document.getElementById('quiz-area');
+        const resultScreenEl = document.getElementById('result-screen');
+        const finalScoreEl = document.getElementById('final-score');
+        const restartButtonEl = document.getElementById('restart-button');
+        const highScoreEl = document.getElementById('high-score'); 
+
+        // --- Core Functions ---
+
+        /**
+         * Shuffles an array in place using the Fisher-Yates algorithm
+         * and returns a new shuffled array.
+         */
+        function shuffleArray(array) {
+            let newArr = [...array]; 
+            for (let i = newArr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+            }
+            return newArr;
+        }
+
+        /**
+         * Selects 10 random questions from the master list.
+         */
+        function selectRandomQuestions() {
+            const shuffled = shuffleArray(masterQuizData);
+            activeQuizQuestions = shuffled.slice(0, QUESTIONS_PER_GAME);
+        }
+
+        /**
+         * Loads the current question into the UI.
+         */
+        function loadQuestion() {
+            // Check if all questions are completed (index 10 for a 10-question quiz)
+            if (currentQuestionIndex >= activeQuizQuestions.length) {
+                showResults();
+                return;
+            }
+
+            isQuestionAnswered = false;
+            nextButtonEl.disabled = true;
+            nextButtonEl.classList.add('disabled:opacity-50');
+            feedbackEl.textContent = '';
+            optionsContainerEl.innerHTML = ''; 
+
+            const currentQ = activeQuizQuestions[currentQuestionIndex];
+            
+            dialogueEl.textContent = `"${currentQ.dialogue}"`;
+            questionCountEl.textContent = `Question ${currentQuestionIndex + 1} of ${activeQuizQuestions.length} | Match to ${currentQ.type}`;
+
+            currentQ.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add(
+                    'option-button', 
+                    'w-full', 'font-semibold', 'py-3', 'px-4', 
+                    'rounded-lg', 'text-left', 'shadow-md'
+                );
+                
+                button.addEventListener('click', () => checkAnswer(index, button, currentQ.correctIndex));
+                optionsContainerEl.appendChild(button);
+            });
+        }
+
+        /**
+         * Checks the user's selected answer against the correct one.
+         */
+        function checkAnswer(selectedIndex, selectedButton, correctIndex) {
+            if (isQuestionAnswered) return; 
+            isQuestionAnswered = true;
+            
+            Array.from(optionsContainerEl.children).forEach(btn => {
+                btn.classList.add('disabled');
+            });
+            nextButtonEl.disabled = false;
+            nextButtonEl.classList.remove('disabled:opacity-50'); 
+
+            if (selectedIndex === correctIndex) {
+                score++;
+                selectedButton.classList.add('correct');
+                feedbackEl.classList.remove('text-red-500');
+                feedbackEl.classList.add('text-green-600');
+                feedbackEl.textContent = "Correct! Wah Wah!";
+            } else {
+                selectedButton.classList.add('incorrect');
+                optionsContainerEl.children[correctIndex].classList.add('correct');
+                feedbackEl.classList.remove('text-green-600');
+                feedbackEl.classList.add('text-red-600');
+                feedbackEl.textContent = "Oops! Wrong Answer.";
+            }
+        }
+
+        /**
+         * Moves to the next question.
+         */
+        function nextQuestion() {
+            if (!isQuestionAnswered) return; 
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        /**
+         * Displays the final score screen and updates high score.
+         */
+        function showResults() {
+            // Hides the quiz interface and shows the results interface
+            quizAreaEl.classList.add('hidden');
+            resultScreenEl.classList.remove('hidden');
+            finalScoreEl.textContent = `Your Score: ${score}/${activeQuizQuestions.length}`;
+
+            const currentHighScore = localStorage.getItem(HIGH_SCORE_KEY) || 0;
+            let newHighScoreText = `All-Time High Score: ${currentHighScore}/${activeQuizQuestions.length}`;
+
+            if (score > currentHighScore) {
+                localStorage.setItem(HIGH_SCORE_KEY, score);
+                newHighScoreText = `🏆 New High Score: ${score}/${activeQuizQuestions.length}! 🏆`;
+            }
+            
+            highScoreEl.textContent = newHighScoreText;
+        }
+
+        /**
+         * Resets the game state and starts the quiz over.
+         */
+        function restartQuiz() {
+            selectRandomQuestions(); 
+            currentQuestionIndex = 0;
+            score = 0;
+            quizAreaEl.classList.remove('hidden');
+            resultScreenEl.classList.add('hidden');
+            loadQuestion();
+        }
+
+        // --- Event Listeners and Initialization ---
+        nextButtonEl.addEventListener('click', nextQuestion);
+        restartButtonEl.addEventListener('click', restartQuiz);
+        
+        // Initial load: Call restartQuiz to shuffle and start the first game
+        restartQuiz();
+
+    </script>
+</body>
+</html>
